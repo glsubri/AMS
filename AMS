@@ -1,0 +1,142 @@
+#!/bin/bash
+#
+# author: Guy-Laurent Subri
+# license: GPLv3
+# 
+# AMS: Android Music Synchronizer
+# This script was initially created because of the little support of MTP on GNU/Linux
+# It uses adb, so you need it installed
+# To create initial configuration launch createDefaultConfig
+
+readonly name="Android Music Synchronizer"
+readonly music_dir="/home/glsubri/media/music"
+readonly conf_file=".music_sync.conf"
+
+function pushDir() {
+	for f in *
+	do
+		if [ ! -d "$f" ]
+		then
+			asd=$(pwd)
+			# Note this:
+			# My path to my music is /home/glsubri/media/music
+			# with the "dir=${asd##*music}, I get rid of the /home/glsubri/media/music.
+			# Example:
+			# Let's say I'm in my WAR (from U2) directory, then dir will be equal to "U2/WAR"
+			# and not /home/glsubri/media/music/U2/WAR
+			# So please change the "*music" if the directory where your music is isn't called "music"
+			local readonly dir=${asd##*music}
+			local readonly full_dir="sdcard/Music"${dir}
+			adb shell mkdir -p "$full_dir"
+			adb push "$f" "$full_dir"
+		fi
+	done
+}
+
+function parse() {
+	if [ ! -e "$conf_file" ]
+	then
+		pushDir
+	else
+		cat "$conf_file" | while read l
+		do
+			cd "$l"
+			parse
+			cd ..
+		done
+	fi
+}
+
+function launch() {
+	cd "$music_dir"
+	state=$(adb get-state)
+	if [ "$state" = "device" ] && [ -e "$conf_file" ]
+	then
+		notify-send "$name" "Lauching music update on Android device"
+		parse
+		notify-send "$name" "Music on Android device updated"
+	fi
+}
+
+function syntax() {
+	echo "HELP PAGE FOR AndroidMusicSynchronizer"
+	echo ""
+	echo "I'm gonna explain briefly how the progam works:"
+	echo ""
+	echo "The program will generate (if you launch it with --initial-config)"
+	echo "a configuration file named .music_sync.conf (by default) in every"
+	echo "directory that contains an other directory. Which means that in a"
+	echo "traditional way of organizing your music, there shouldn't be any"
+	echo "problems. Now, if you don't want a particular artist or album, edit"
+	echo "the configuration file and delete the line where your artist/album"
+	echo "is. It will not be synchronized with your Android device anymore but"
+	echo "you'll have to delete it from your Android device manually (maybe"
+	echo "this feature will be added in the future)."
+	echo ""
+	echo "Now, the commands:"
+	echo ""
+	echo "-d | --delete-config\tDeletes all the config files"
+	echo "-h | --help\tPrint this page"
+	echo "-i | --initial-config\tCreates an initial config files with every artist and albums"
+}
+
+function initialConfig() {
+	cd "$music_dir"
+	createConfig
+}
+
+function createConfig {
+	isThereDir=false
+	for f in *
+	do
+		if [ -d "$f" ]
+		then
+			isThereDir=true
+			break
+
+		fi
+	done
+
+	if $isThereDir
+	then
+		touch "$conf_file"
+		for f in *
+		do
+			if [ -d "$f" ]
+			then
+				echo "$f" >> "$conf_file"
+			fi
+		done
+	fi
+	for f in *
+	do
+		if [ -d "$f" ]
+		then
+			cd "$f"
+			createConfig
+			cd ..
+		fi
+	done
+}
+
+function deleteConfig() {
+	cd "$music_dir"
+	find . -iname "$conf_file" -delete
+	echo "Deleted all conf"
+	exit 0
+}
+
+ARGS=$(getopt -o dhi -l "initial-config,help,delete-config")
+
+case "$1" in
+	-d|--delete-config)
+		deleteConfig;;
+	-h|--help)
+		syntax;;
+	-i|--initial-config)
+		initialConfig;;
+	*)
+		launch;;
+esac
+
+exit 0
