@@ -140,7 +140,7 @@ ARGS=$(getopt -o adhi -l "initial-config,help,delete-config,add-dir")
 case "$1" in
 	-a|--add-dir)
 		shift
-		addDir $1;;
+		addDir "$1";;
 	-d|--delete-config)
 		deleteConfig;;
 	-h|--help)
