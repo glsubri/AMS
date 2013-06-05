@@ -1,0 +1,2 @@
+1) if --add-dir then add the artist/album to the .music_sync.conf file
+2) update the syntax function to add --add-dir
