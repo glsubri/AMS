@@ -1,2 +1,4 @@
 1) if --add-dir then add the artist/album to the .music_sync.conf file
 2) update the syntax function to add --add-dir
+3) encode everything in ogg before pushing it to my phone
+4) make sure the tags used for the albums and artists are correct before pushing to my phone
