@@ -75,6 +75,7 @@ function syntax() {
 	echo ""
 	echo "Now, the commands:"
 	echo ""
+	echo "-a | --add-dir\tYou must specify a directory. Adds a directory to your device"
 	echo "-d | --delete-config\tDeletes all the config files"
 	echo "-h | --help\tPrint this page"
 	echo "-i | --initial-config\tCreates an initial config files with every artist and albums"
