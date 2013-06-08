@@ -10,3 +10,5 @@ add a dir with all the playlists i created on my computer and on android (if tha
 
 verify file and if exists and same size then don't push it
 that implies rewriting of pushDir
+
+Add something to have covers (maybe with the android app ?). Because google music doesn't support covers in tags, put covers in directory
