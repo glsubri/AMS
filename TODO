@@ -7,6 +7,7 @@ make sure the tags used for the albums and artists are correct before pushing to
 delete all the playlists in artists and albums
 
 add a dir with all the playlists i created on my computer and on android (if that's possible)
+make a funciton to create playlists & store them in .playlists ?
 
 verify file and if exists and same size then don't push it
 that implies rewriting of pushDir
