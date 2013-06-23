@@ -145,15 +145,9 @@ function addDir() {
 	albumIn=false
 
 	cd "$music_dir"
-	#cat "$conf_file" | while read l
+
 	while read l
 	do
-		#echo "Artist:"
-		#echo "$l"
-		#echo ""
-		echo "Should be false"
-		echo $artistIn
-		#echo ""
 		if [ "$l" = "$artist" ]
 		then
 			artistIn=true
@@ -168,26 +162,16 @@ function addDir() {
 			done < "$conf_file"
 			# return in the music dir
 			cd ..
-			echo "Should be true"
-			echo $artistIn
 			break
 		fi
 	done < "$conf_file"
-	echo "---------------"
-	echo "Should be true"
-	echo $artistIn
-	echo "---------------"
-	echo "$artist"
-	echo "$album"
-	echo $artistIn
-	echo $albumIn
 
 	if [ ! $artistIn ]
 	then
-		echo "$artist" << "$music_dir""$conf_file"
-	else if [ ! $albumIn ]
+		echo "$artist" >> "$music_dir$conf_file"
+	elif [ ! $albumIn ]
 	then
-		echo "$album" << "$dir""$conf_file"
+		echo "$album" >> "$dir""$conf_file"
 	fi
 
 
