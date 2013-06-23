@@ -129,12 +129,73 @@ function deleteConfig() {
 }
 
 function addDir() {
+	# Set up the nedded variables
+	# $dir selects the argument $1 and only keeps what's after "music"
 	local readonly dir=${1##*music}
+	# keeps the artist name
+	local readonly artist=$(echo $dir | awk -F/ '{print $2}')
+	# keeps the album name
+	local readonly album=$(echo $dir | awk -F/ '{print $3}')
+	# is the dir on my android device
 	local readonly full_dir="sdcard/Music"${dir}
-	adb shell mkdir -p "$full_dir"
-	cd "$1"
-	pushDir
-	exit 0
+
+	# This part is to add the dir to my conf file
+	# so that i don't have to add it manually
+	artistIn=false
+	albumIn=false
+
+	cd "$music_dir"
+	#cat "$conf_file" | while read l
+	while read l
+	do
+		#echo "Artist:"
+		#echo "$l"
+		#echo ""
+		echo "Should be false"
+		echo $artistIn
+		#echo ""
+		if [ "$l" = "$artist" ]
+		then
+			artistIn=true
+			cd "$artist"
+			while read l2
+			do
+				if [ "$l2" = "$album" ]
+				then
+					albumIn=true
+					break
+				fi
+			done < "$conf_file"
+			# return in the music dir
+			cd ..
+			echo "Should be true"
+			echo $artistIn
+			break
+		fi
+	done < "$conf_file"
+	echo "---------------"
+	echo "Should be true"
+	echo $artistIn
+	echo "---------------"
+	echo "$artist"
+	echo "$album"
+	echo $artistIn
+	echo $albumIn
+
+	if [ ! $artistIn ]
+	then
+		echo "$artist" << "$music_dir""$conf_file"
+	else if [ ! $albumIn ]
+	then
+		echo "$album" << "$dir""$conf_file"
+	fi
+
+
+
+	#adb shell mkdir -p "$full_dir"
+	#cd "$1"
+	#pushDir
+	#exit 0
 }
 
 ARGS=$(getopt -o adhi -l "initial-config,help,delete-config,add-dir")
