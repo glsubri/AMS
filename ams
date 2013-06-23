@@ -13,75 +13,6 @@ readonly name="Android Music Synchronizer"
 readonly music_dir="/home/glsubri/media/music"
 readonly conf_file=".music_sync.conf"
 
-function pushDir() {
-	for f in *
-	do
-		if [ ! -d "$f" ]
-		then
-			asd=$(pwd)
-			# Note this:
-			# My path to my music is /home/glsubri/media/music
-			# with the "dir=${asd##*music}, I get rid of the /home/glsubri/media/music.
-			# Example:
-			# Let's say I'm in my WAR (from U2) directory, then dir will be equal to "U2/WAR"
-			# and not /home/glsubri/media/music/U2/WAR
-			# So please change the "*music" if the directory where your music is isn't called "music"
-			local readonly dir=${asd##*music}
-			local readonly full_dir="sdcard/Music"${dir}
-			adb shell mkdir -p "$full_dir"
-			adb push "$f" "$full_dir"
-		fi
-	done
-}
-
-function parse() {
-	if [ ! -e "$conf_file" ]
-	then
-		pushDir
-	else
-		cat "$conf_file" | while read l
-		do
-			cd "$l"
-			parse
-			cd ..
-		done
-	fi
-}
-
-function launch() {
-	cd "$music_dir"
-	state=$(adb get-state)
-	if [ "$state" = "device" ] && [ -e "$conf_file" ]
-	then
-		notify-send "$name" "Lauching music update on Android device"
-		parse
-		notify-send "$name" "Music on Android device updated"
-	fi
-}
-
-function syntax() {
-	echo -e "HELP PAGE FOR AndroidMusicSynchronizer"
-	echo -e ""
-	echo -e "I'm gonna explain briefly how the progam works:"
-	echo -e ""
-	echo -e "The program will generate (if you launch it with --initial-config)"
-	echo -e "a configuration file named .music_sync.conf (by default) in every"
-	echo -e "directory that contains an other directory. Which means that in a"
-	echo -e "traditional way of organizing your music, there shouldn't be any"
-	echo -e "problems. Now, if you don't want a particular artist or album, edit"
-	echo -e "the configuration file and delete the line where your artist/album"
-	echo -e "is. It will not be synchronized with your Android device anymore but"
-	echo -e "you'll have to delete it from your Android device manually (maybe"
-	echo -e "this feature will be added in the future)."
-	echo -e ""
-	echo -e "Now, the commands:"
-	echo -e ""
-	echo -e "-a | --add-dir\t\tYou must specify a directory. Adds a directory to your device"
-	echo -e "-d | --delete-config\tDeletes all the config files"
-	echo -e "-h | --help\t\tPrint this page"
-	echo -e "-i | --initial-config\tCreates an initial config files with every artist and albums"
-}
-
 function initialConfig() {
 	cd "$music_dir"
 	createConfig
@@ -126,6 +57,41 @@ function deleteConfig() {
 	find . -iname "$conf_file" -delete
 	echo -e "Deleted all conf"
 	exit 0
+}
+
+function parse() {
+	if [ ! -e "$conf_file" ]
+	then
+		pushDir
+	else
+		cat "$conf_file" | while read l
+		do
+			cd "$l"
+			parse
+			cd ..
+		done
+	fi
+}
+
+function pushDir() {
+	for f in *
+	do
+		if [ ! -d "$f" ]
+		then
+			asd=$(pwd)
+			# Note this:
+			# My path to my music is /home/glsubri/media/music
+			# with the "dir=${asd##*music}, I get rid of the /home/glsubri/media/music.
+			# Example:
+			# Let's say I'm in my WAR (from U2) directory, then dir will be equal to "U2/WAR"
+			# and not /home/glsubri/media/music/U2/WAR
+			# So please change the "*music" if the directory where your music is isn't called "music"
+			local readonly dir=${asd##*music}
+			local readonly full_dir="sdcard/Music"${dir}
+			adb shell mkdir -p "$full_dir"
+			adb push "$f" "$full_dir"
+		fi
+	done
 }
 
 function addDir() {
@@ -185,6 +151,40 @@ function addDir() {
 	cd "$1"
 	parse
 	exit 0
+}
+
+function launch() {
+	cd "$music_dir"
+	state=$(adb get-state)
+	if [ "$state" = "device" ] && [ -e "$conf_file" ]
+	then
+		notify-send "$name" "Lauching music update on Android device"
+		parse
+		notify-send "$name" "Music on Android device updated"
+	fi
+}
+
+function syntax() {
+	echo -e "HELP PAGE FOR AndroidMusicSynchronizer"
+	echo -e ""
+	echo -e "I'm gonna explain briefly how the progam works:"
+	echo -e ""
+	echo -e "The program will generate (if you launch it with --initial-config)"
+	echo -e "a configuration file named .music_sync.conf (by default) in every"
+	echo -e "directory that contains an other directory. Which means that in a"
+	echo -e "traditional way of organizing your music, there shouldn't be any"
+	echo -e "problems. Now, if you don't want a particular artist or album, edit"
+	echo -e "the configuration file and delete the line where your artist/album"
+	echo -e "is. It will not be synchronized with your Android device anymore but"
+	echo -e "you'll have to delete it from your Android device manually (maybe"
+	echo -e "this feature will be added in the future)."
+	echo -e ""
+	echo -e "Now, the commands:"
+	echo -e ""
+	echo -e "-a | --add-dir\t\tYou must specify a directory. Adds a directory to your device"
+	echo -e "-d | --delete-config\tDeletes all the config files"
+	echo -e "-h | --help\t\tPrint this page"
+	echo -e "-i | --initial-config\tCreates an initial config files with every artist and albums"
 }
 
 ARGS=$(getopt -o adhi -l "initial-config,help,delete-config,add-dir")
