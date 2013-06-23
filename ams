@@ -151,35 +151,40 @@ function addDir() {
 		if [ "$l" = "$artist" ]
 		then
 			artistIn=true
-			cd "$artist"
-			while read l2
-			do
-				if [ "$l2" = "$album" ]
-				then
-					albumIn=true
-					break
-				fi
-			done < "$conf_file"
-			# return in the music dir
-			cd ..
+			if [ -n "$album" ]
+			then
+				cd "$artist"
+				while read l2
+				do
+					if [ "$l2" = "$album" ]
+					then
+						albumIn=true
+						break
+					fi
+				done < "$conf_file"
+				# return in the music dir
+				cd ..
+			fi
 			break
 		fi
 	done < "$conf_file"
 
-	if [ ! $artistIn ]
+	if [ !$artistIn ]
 	then
-		echo "$artist" >> "$music_dir$conf_file"
-	elif [ ! $albumIn ]
-	then
-		echo "$album" >> "$dir""$conf_file"
+		echo "$artist" >> "$conf_file"
 	fi
 
-
+	if [[ -n "$album" && !$albumIn  ]]
+	then
+		cd "$artist"
+		echo "$album" >> "$conf_file"
+		cd ..
+	fi
 
 	#adb shell mkdir -p "$full_dir"
-	#cd "$1"
-	#pushDir
-	#exit 0
+	cd "$1"
+	parse
+	exit 0
 }
 
 ARGS=$(getopt -o adhi -l "initial-config,help,delete-config,add-dir")
