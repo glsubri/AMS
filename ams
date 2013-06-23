@@ -6,6 +6,7 @@
 # AMS: Android Music Synchronizer
 # This script was initially created because of the little support of MTP on GNU/Linux
 # It uses adb, so you need it installed
+
 # To create initial configuration launch createDefaultConfig
 
 readonly name="Android Music Synchronizer"
@@ -59,26 +60,26 @@ function launch() {
 }
 
 function syntax() {
-	echo "HELP PAGE FOR AndroidMusicSynchronizer"
-	echo ""
-	echo "I'm gonna explain briefly how the progam works:"
-	echo ""
-	echo "The program will generate (if you launch it with --initial-config)"
-	echo "a configuration file named .music_sync.conf (by default) in every"
-	echo "directory that contains an other directory. Which means that in a"
-	echo "traditional way of organizing your music, there shouldn't be any"
-	echo "problems. Now, if you don't want a particular artist or album, edit"
-	echo "the configuration file and delete the line where your artist/album"
-	echo "is. It will not be synchronized with your Android device anymore but"
-	echo "you'll have to delete it from your Android device manually (maybe"
-	echo "this feature will be added in the future)."
-	echo ""
-	echo "Now, the commands:"
-	echo ""
-	echo "-a | --add-dir\tYou must specify a directory. Adds a directory to your device"
-	echo "-d | --delete-config\tDeletes all the config files"
-	echo "-h | --help\tPrint this page"
-	echo "-i | --initial-config\tCreates an initial config files with every artist and albums"
+	echo -e "HELP PAGE FOR AndroidMusicSynchronizer"
+	echo -e ""
+	echo -e "I'm gonna explain briefly how the progam works:"
+	echo -e ""
+	echo -e "The program will generate (if you launch it with --initial-config)"
+	echo -e "a configuration file named .music_sync.conf (by default) in every"
+	echo -e "directory that contains an other directory. Which means that in a"
+	echo -e "traditional way of organizing your music, there shouldn't be any"
+	echo -e "problems. Now, if you don't want a particular artist or album, edit"
+	echo -e "the configuration file and delete the line where your artist/album"
+	echo -e "is. It will not be synchronized with your Android device anymore but"
+	echo -e "you'll have to delete it from your Android device manually (maybe"
+	echo -e "this feature will be added in the future)."
+	echo -e ""
+	echo -e "Now, the commands:"
+	echo -e ""
+	echo -e "-a | --add-dir\t\tYou must specify a directory. Adds a directory to your device"
+	echo -e "-d | --delete-config\tDeletes all the config files"
+	echo -e "-h | --help\t\tPrint this page"
+	echo -e "-i | --initial-config\tCreates an initial config files with every artist and albums"
 }
 
 function initialConfig() {
@@ -105,7 +106,7 @@ function createConfig {
 		do
 			if [ -d "$f" ]
 			then
-				echo "$f" >> "$conf_file"
+				echo -e "$f" >> "$conf_file"
 			fi
 		done
 	fi
@@ -123,7 +124,7 @@ function createConfig {
 function deleteConfig() {
 	cd "$music_dir"
 	find . -iname "$conf_file" -delete
-	echo "Deleted all conf"
+	echo -e "Deleted all conf"
 	exit 0
 }
 
