@@ -95,6 +95,10 @@ function pushDir() {
 }
 
 function addDir() {
+	# Verify that there is no flac in this dir
+	# Cause flac is good but takes a lot of space...
+	flac2ogg "$1"
+
 	# Set up the nedded variables
 	# $dir selects the argument $1 and only keeps what's after "music"
 	local readonly dir=${1##*music}
@@ -153,12 +157,18 @@ function addDir() {
 	exit 0
 }
 
+function flac2ogg() {
+	[[ -n $1 ]] && dir2conv = "$music_dir" || dir2conv = "$1"
+	find "$dir2conv" -iname "*.flac" -execdir oggenc -q 8 \{\} \; && find "$dir2conv" -iname "*.flac" -delete
+}
+
 function launch() {
-	cd "$music_dir"
 	state=$(adb get-state)
 	if [ "$state" = "device" ] && [ -e "$conf_file" ]
 	then
+		cd "$music_dir"
 		notify-send "$name" "Lauching music update on Android device"
+		flac2ogg
 		parse
 		notify-send "$name" "Music on Android device updated"
 	fi
