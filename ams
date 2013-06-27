@@ -11,6 +11,7 @@
 
 readonly name="Android Music Synchronizer"
 readonly music_dir="/home/glsubri/media/music"
+readonly base_music_dir=$(basename $music_dir)
 readonly conf_file=".music_sync.conf"
 
 function initialConfig() {
@@ -78,7 +79,7 @@ function pushDir() {
 	do
 		if [ ! -d "$f" ]
 		then
-			asd=$(pwd)
+			local readonly asd=$(pwd)
 			# Note this:
 			# My path to my music is /home/glsubri/media/music
 			# with the "dir=${asd##*music}, I get rid of the /home/glsubri/media/music.
@@ -86,8 +87,7 @@ function pushDir() {
 			# Let's say I'm in my WAR (from U2) directory, then dir will be equal to "U2/WAR"
 			# and not /home/glsubri/media/music/U2/WAR
 			# So please change the "*music" if the directory where your music is isn't called "music"
-			local readonly dir=${asd##*music}
-			local readonly full_dir="sdcard/Music"${dir}
+			local readonly full_dir="sdcard/Music"${asd##*$base_music_dir}
 			adb shell mkdir -p "$full_dir"
 			adb push "$f" "$full_dir"
 		fi
