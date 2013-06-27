@@ -89,7 +89,22 @@ function pushDir() {
 			# So please change the "*music" if the directory where your music is isn't called "music"
 			local readonly full_dir="sdcard/Music"${asd##*$base_music_dir}
 			adb shell mkdir -p "$full_dir"
-			adb push "$f" "$full_dir"
+
+			# Just a tab
+			local readonly tab=$(echo -e '\t')
+
+			# Size of the file on my hard drive
+			local readonly local_size=$(du "$f" | cut -d "$tab" -f 1)
+			# Size of the file on my device
+			local readonly remote_size=$(adb shell du "$full_dir/$f" | cut -d "$tab" -f 1)
+
+			# So I gain a lot of time by not pushing things that already *are* on my device
+			# And IDK why, but it seams that the size on the device is always two times
+			# the one on my PC...
+			if [ "$remote_size" != "$((local_size * 2))" ]
+			then
+				adb push "$f" "$full_dir"
+			fi
 		fi
 	done
 }
@@ -158,15 +173,16 @@ function addDir() {
 }
 
 function flac2ogg() {
-	[[ -n $1 ]] && dir2conv = "$music_dir" || dir2conv = "$1"
+	[ -n $1 ] && dir2conv="$music_dir" || dir2conv="$1"
 	find "$dir2conv" -iname "*.flac" -execdir oggenc -q 8 \{\} \; && find "$dir2conv" -iname "*.flac" -delete
 }
 
 function launch() {
 	state=$(adb get-state)
+	cd "$music_dir"
+
 	if [ "$state" = "device" ] && [ -e "$conf_file" ]
 	then
-		cd "$music_dir"
 		notify-send "$name" "Lauching music update on Android device"
 		flac2ogg
 		parse
