@@ -14,38 +14,16 @@ readonly music_dir="/home/glsubri/media/music"
 readonly base_music_dir=$(basename $music_dir)
 readonly conf_file=".music_sync.conf"
 
-function initialConfig() {
-	cd "$music_dir"
-	createConfig
-}
-
+# This function creates all the default conf needed for the program to work correctly
+# This is a recursive function
 function createConfig {
-	isThereDir=false
-	for f in *
+	for f in */
 	do
+		# If f is a directory, then add it to the conf file
+		# and go inside it !!
 		if [ -d "$f" ]
 		then
-			isThereDir=true
-			break
-
-		fi
-	done
-
-	if $isThereDir
-	then
-		touch "$conf_file"
-		for f in *
-		do
-			if [ -d "$f" ]
-			then
-				echo -e "$f" >> "$conf_file"
-			fi
-		done
-	fi
-	for f in *
-	do
-		if [ -d "$f" ]
-		then
+			echo -e "$f" >> "$conf_file"
 			cd "$f"
 			createConfig
 			cd ..
@@ -53,13 +31,16 @@ function createConfig {
 	done
 }
 
+# In case you want to delete all your config, there's a function for that!
 function deleteConfig() {
 	cd "$music_dir"
 	find . -iname "$conf_file" -delete
-	echo -e "Deleted all conf"
+	notify-send "$name" "Deleted all conf"
 	exit 0
 }
 
+# Pushes to the device what needs to be
+# Uses pushDir for that
 function parse() {
 	if [ ! -e "$conf_file" ]
 	then
@@ -74,6 +55,7 @@ function parse() {
 	fi
 }
 
+# Pushes a dir to the device
 function pushDir() {
 	for f in *
 	do
@@ -109,6 +91,7 @@ function pushDir() {
 	done
 }
 
+# Adds a dir to the device and to the conf file
 function addDir() {
 	# Verify that there is no flac in this dir
 	# Cause flac is good but takes a lot of space...
@@ -116,7 +99,7 @@ function addDir() {
 
 	# Set up the nedded variables
 	# $dir selects the argument $1 and only keeps what's after "music"
-	local readonly dir=${1##*music}
+	local readonly dir=${1##*$base_music_dir}
 	# keeps the artist name
 	local readonly artist=$(echo $dir | awk -F/ '{print $2}')
 	# keeps the album name
@@ -172,24 +155,32 @@ function addDir() {
 	exit 0
 }
 
+# Flac is cool, but takes a lot of space. Space is precious on my device... I must keep it
 function flac2ogg() {
 	[ -n $1 ] && dir2conv="$music_dir" || dir2conv="$1"
 	find "$dir2conv" -iname "*.flac" -execdir oggenc -q 8 \{\} \; && find "$dir2conv" -iname "*.flac" -delete
 }
 
-function launch() {
+# Main function
+function main() {
 	state=$(adb get-state)
 	cd "$music_dir"
 
+	# When the device is connected, the state is set at "device"
+	# We only want to launch if the device is connected
 	if [ "$state" = "device" ] && [ -e "$conf_file" ]
 	then
 		notify-send "$name" "Lauching music update on Android device"
 		flac2ogg
 		parse
 		notify-send "$name" "Music on Android device updated"
+	elif [ ! -e "$conf_file" ]
+	then
+		notify-send "$name" "I need to be configurated to work correctly!"
 	fi
 }
 
+# Prints the help page
 function syntax() {
 	echo -e "HELP PAGE FOR AndroidMusicSynchronizer"
 	echo -e ""
@@ -213,6 +204,7 @@ function syntax() {
 	echo -e "-i | --initial-config\tCreates an initial config files with every artist and albums"
 }
 
+# Manages the arguments
 ARGS=$(getopt -o adhi -l "initial-config,help,delete-config,add-dir")
 
 case "$1" in
@@ -224,9 +216,10 @@ case "$1" in
 	-h|--help)
 		syntax;;
 	-i|--initial-config)
-		initialConfig;;
+		cd "$music_dir"
+		createConfig;;
 	*)
-		launch;;
+		main;;
 esac
 
 exit 0
